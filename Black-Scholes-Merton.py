@@ -1,23 +1,21 @@
-# import os
-
-import quandl
-
-import numpy as np
-
 import math
-
+import matplotlib.pyplot as plt
+import numpy as np
+import quandl
 import scipy.stats as st
 
 quandl.ApiConfig.api_key = 'JMxryiBcRV26o9r5q7uv'
 
 
 class BlackScholesModel:
-    def __init__(self, stock_price, strike, risk_free, maturity, implied_vol, call_price):
+    def __init__(self, stock_price, strike, risk_free, maturity, implied_vol, norm_d1, norm_d2, call_price):
         self.stock_price = stock_price
         self.strike = strike
         self.risk_free = risk_free
         self.maturity = maturity
         self.implied_vol = implied_vol
+        self.norm_d1 = norm_d1
+        self.norm_d2 = norm_d2
         self.call_price = call_price
 
     def maturity(self, exp_date, today):
@@ -39,20 +37,20 @@ class BlackScholesModel:
                     self.risk_free.append(yield_curve[f][-1] / 100)
             return self.risk_free[0]
 
-    def _norm_d1(self, s, k, r, t, sigma):
-        d1 = (np.log(s/k) + (r + (np.power(sigma, 2) / 2) * t)) / (sigma * math.sqrt(t))
-        n_d1 = st.norm.cdf(d1)
-        return d1, n_d1
+    def norm_d1(self):
+        d1 = (np.log(self.stock_price/self.strike) + (r + (np.power(sigma, 2) / 2) * t)) / (sigma * math.sqrt(t)
+        self.norm_d1 = st.norm.cdf(d1)
+        return d1, self.norm_d1
 
-    def _norm_d2(self, d1, sigma, t):
+    def norm_d2(self, d1, sigma, t):
         d2 = d1 - sigma * math.sqrt(t)
-        n_d2 = st.norm.cdf(d2)
-        return n_d2
+        self.norm_d2 = st.norm.cdf(d2)
+        return self.norm_d2
 
     def call_price(self, s, k, r, t, sigma):
-        d1, n_d1 = self._norm_d1(s, k, r, t, sigma)
-        n_d2 = _norm_d2(d1, sigma, t)
-        self.call_price = S * n_d1 - k * math.exp(-r * t) * n_d2
+        d1, n_d1 = self.norm_d1(s, k, r, t, sigma)
+        self.norm_d2 = self.norm_d2(d1, sigma, t)
+        self.call_price = s * n_d1 - k * math.exp(-r * t) * self.norm_d2
         return self.call_price
 
     def callp_plot(self, n_rows, n_col, figure_size, expir_dates, subtitle=None):
@@ -78,8 +76,8 @@ class BlackScholesModel:
             else:
                 ax = axs[i, j]
 
-            ax.plot(K[expir_dates[n]],
-                    C[expir_dates[n]],
+            ax.plot(self.strike[expir_dates[n]],
+                    self.call_price()[expir_dates[n]],
                     'tab:red',
                     linewidth=4.0,
                     label='BSM model')  # Plots the first expiration based on BSM model
