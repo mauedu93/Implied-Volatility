@@ -1,14 +1,16 @@
 import math
+import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 import quandl
+import yfinance as yf
 import scipy.stats as st
 
 quandl.ApiConfig.api_key = 'JMxryiBcRV26o9r5q7uv'
 
 
 class BlackScholesModel:
-    def __init__(self, stock_price, strike, risk_free, maturity, implied_vol, norm_d1, norm_d2, call_price):
+    def __init__(self):
         self.stock_price = stock_price
         self.strike = strike
         self.risk_free = risk_free
@@ -38,19 +40,21 @@ class BlackScholesModel:
             return self.risk_free[0]
 
     def norm_d1(self):
-        d1 = (np.log(self.stock_price/self.strike) + (r + (np.power(sigma, 2) / 2) * t)) / (sigma * math.sqrt(t)
+        d1 = (np.log(self.stock_price / self.strike) + (self.risk_free + (np.power(self.implied_vol, 2) / 2) *
+                                                        self.maturity)) / (self.implied_vol * math.sqrt(self.maturity))
         self.norm_d1 = st.norm.cdf(d1)
         return d1, self.norm_d1
 
-    def norm_d2(self, d1, sigma, t):
-        d2 = d1 - sigma * math.sqrt(t)
+    def norm_d2(self, d1):
+        d2 = d1 - self.implied_vol * math.sqrt(self.maturity)
         self.norm_d2 = st.norm.cdf(d2)
         return self.norm_d2
 
-    def call_price(self, s, k, r, t, sigma):
-        d1, n_d1 = self.norm_d1(s, k, r, t, sigma)
-        self.norm_d2 = self.norm_d2(d1, sigma, t)
-        self.call_price = s * n_d1 - k * math.exp(-r * t) * self.norm_d2
+    def call_price(self):
+        d1, self.norm_d1 = self.norm_d1(self.stock_price, self.strike, self.risk_free, self.maturity, self.implied_vol)
+        self.norm_d2 = self.norm_d2(d1, self.implied_vol, self.maturity)
+        self.call_price = (self.stock_price * self.norm_d1 - (self.strike *
+                                                              math.exp(-self.risk_free * self.maturity) * self.norm_d2))
         return self.call_price
 
     def callp_plot(self, n_rows, n_col, figure_size, expir_dates, subtitle=None):
@@ -61,8 +65,8 @@ class BlackScholesModel:
 
         fig, axs = plt.subplots(n_rows, n_col, figsize=figure_size)
 
-        if subtitle == None:
-            name = GSPC.info['shortName']
+        if subtitle is None:
+            name = yf.Ticker('^GSPC').info['shortName']
             fig.suptitle(f'{name} Call Value vs. Strike Price', fontsize=18, fontweight='bold')
         else:
             fig.suptitle(subtitle, fontsize=18, fontweight='bold')
@@ -81,8 +85,8 @@ class BlackScholesModel:
                     'tab:red',
                     linewidth=4.0,
                     label='BSM model')  # Plots the first expiration based on BSM model
-            ax.plot(K[expir_dates[n]],
-                    GSPC.option_chain(expir_dates[n]).calls['lastPrice'],
+            ax.plot(self.strike[expir_dates[n]],
+                    yf.Ticker('^GSPC').option_chain(expir_dates[n]).calls['lastPrice'],
                     'tab:cyan',
                     linewidth=1.0,
                     label='Market price')  # Plots the first expiration based on actual market price
