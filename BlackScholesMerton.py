@@ -19,7 +19,7 @@ class BlackScholesModel:
 
     def maturity(self):
         maturity = (self.exp_date - self.today_date).days
-        return maturity
+        return maturity/365
 
     def risk_free(self):
         num_days = [30, 60, 90, 180, 365, 730, 1095, 1825, 2555, 3650, 7300, 10950]
@@ -71,7 +71,7 @@ class BlackScholesModel:
             fig.suptitle(subtitle, fontsize=18, fontweight='bold')
         i, j = 0, 0
 
-        if isinstance(self.exp_date, datetime):
+        if isinstance(self.exp_date, datetime.datetime):
 
             axs.plot(self.strike[self.exp_date],
                      self.call_price()[self.exp_date],
