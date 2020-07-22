@@ -18,21 +18,22 @@ class BlackScholesModel:
         self.implied_vol = implied_vol
 
     def maturity(self):
-        maturity = (self.exp_date - self.today_date).days
-        return maturity/365
+        maturity_d = (self.exp_date - self.today_date).days
+        maturity = maturity_d / 365
+        return maturity
 
     def risk_free(self):
         num_days = [30, 60, 90, 180, 365, 730, 1095, 1825, 2555, 3650, 7300, 10950]
         yield_curve = quandl.get("USTREASURY/YIELD", authtoken='JMxryiBcRV26o9r5q7uv')
         rf_ttm = list(yield_curve.columns)
         risk_free = []
-        if round(self.maturity()) < 0:
+        if round(self.maturity()*365) < 0:
             return "Expire date must be greater than today"
-        elif round(self.maturity()) > num_days[-1]:
+        elif round(self.maturity()*365) > num_days[-1]:
             return yield_curve[rf_ttm[-1]][-1] / 100
         else:
             for b, f in zip(num_days, rf_ttm):
-                if round(self.maturity()) < b:
+                if round(self.maturity()*365) < b:
                     risk_free.append(yield_curve[f][-1] / 100)
             return risk_free[0]
 
