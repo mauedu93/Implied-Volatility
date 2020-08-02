@@ -57,6 +57,11 @@ class BlackScholesModel:
                                                         -self.risk_free() * self.maturity()) * self.norm_d2()))
         return call_price
 
+    def bsm_callp(self, CallP):
+        dif = CallP - self.call_price()
+        return dif
+
+
     def callp_plot(self, n_rows, n_col, figure_size, subtitle=None):
 
         if not isinstance(figure_size, (list, tuple)):
