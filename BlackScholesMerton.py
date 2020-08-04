@@ -57,10 +57,19 @@ class BlackScholesModel:
                                                         -self.risk_free() * self.maturity()) * self.norm_d2()))
         return call_price
 
-    def bsm_callp(self, CallP):
-        dif = CallP - self.call_price()
-        return dif
+    def call_premium(self, premium):
+        call_premium = premium
+        return call_premium
 
+    def difference(self, sigma):
+        d1 = (np.log(self.stock_price / self.strike) + (self.risk_free() + (
+                    np.power(sigma, 2) / 2) * self.maturity())) / (sigma * math.sqrt(self.maturity()))
+        n_d1 = st.norm.cdf(d1)
+        d2 = d1 - sigma * math.sqrt(self.maturity())
+        n_d2 = st.norm.cdf(d2)
+        c = self.stock_price * n_d1 - self.strike * math.exp(-self.risk_free() * self.maturity()) * n_d2
+        call_premium = self.call_premium()
+        return (call_premium - c) ** 2
 
     def callp_plot(self, n_rows, n_col, figure_size, subtitle=None):
 
