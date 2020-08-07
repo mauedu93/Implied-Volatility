@@ -10,12 +10,13 @@ quandl.ApiConfig.api_key = 'JMxryiBcRV26o9r5q7uv'
 
 
 class BlackScholesModel:
-    def __init__(self, exp_date, today_date, stock_price, strike, implied_vol):
+    def __init__(self, exp_date, today_date, stock_price, strike, implied_vol, premium=None):
         self.exp_date = exp_date
         self.today_date = today_date
         self.stock_price = stock_price
         self.strike = strike
         self.implied_vol = implied_vol
+        self.premium = premium
 
     def maturity(self):
         maturity_d = (self.exp_date - self.today_date).days
@@ -57,10 +58,6 @@ class BlackScholesModel:
                                                         -self.risk_free() * self.maturity()) * self.norm_d2()))
         return call_price
 
-    def call_premium(self, premium):
-        call_premium = premium
-        return call_premium
-
     def difference(self, sigma):
         d1 = (np.log(self.stock_price / self.strike) + (self.risk_free() + (
                     np.power(sigma, 2) / 2) * self.maturity())) / (sigma * math.sqrt(self.maturity()))
@@ -68,7 +65,7 @@ class BlackScholesModel:
         d2 = d1 - sigma * math.sqrt(self.maturity())
         n_d2 = st.norm.cdf(d2)
         c = self.stock_price * n_d1 - self.strike * math.exp(-self.risk_free() * self.maturity()) * n_d2
-        call_premium = self.call_premium()
+        call_premium = self.premium
         return (call_premium - c) ** 2
 
     def callp_plot(self, n_rows, n_col, figure_size, subtitle=None):
