@@ -10,7 +10,7 @@ quandl.ApiConfig.api_key = 'JMxryiBcRV26o9r5q7uv'
 
 
 class BlackScholesModel:
-    def __init__(self, exp_date, today_date, stock_price, strike, implied_vol, premium=None):
+    def __init__(self, exp_date, today_date, stock_price, strike, implied_vol=None, premium=None):
         self.exp_date = exp_date
         self.today_date = today_date
         self.stock_price = stock_price
