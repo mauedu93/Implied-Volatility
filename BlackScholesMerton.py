@@ -5,16 +5,18 @@ import numpy as np
 import quandl
 import yfinance as yf
 import scipy.stats as st
+# import timeit
+# import scipy as sc
 
 quandl.ApiConfig.api_key = 'JMxryiBcRV26o9r5q7uv'
 
 
 class BlackScholesModel:
-    def __init__(self, exp_date, today_date, stock_price, strike, implied_vol=None, premium=None):
+    def __init__(self, exp_date, today_date, stock_price, strike_p, implied_vol=None, premium=None):
         self.exp_date = exp_date
         self.today_date = today_date
         self.stock_price = stock_price
-        self.strike = strike
+        self.strike = strike_p
         self.implied_vol = implied_vol
         self.premium = premium
 
@@ -28,13 +30,13 @@ class BlackScholesModel:
         yield_curve = quandl.get("USTREASURY/YIELD", authtoken='JMxryiBcRV26o9r5q7uv')
         rf_ttm = list(yield_curve.columns)
         risk_free = []
-        if round(self.maturity()*365) < 0:
+        if round(self.maturity() * 365) < 0:
             return "Expire date must be greater than today"
-        elif round(self.maturity()*365) > num_days[-1]:
+        elif round(self.maturity() * 365) > num_days[-1]:
             return yield_curve[rf_ttm[-1]][-1] / 100
         else:
             for b, f in zip(num_days, rf_ttm):
-                if round(self.maturity()*365) < b:
+                if round(self.maturity() * 365) < b:
                     risk_free.append(yield_curve[f][-1] / 100)
             return risk_free[0]
 
@@ -60,7 +62,7 @@ class BlackScholesModel:
 
     def difference(self, sigma):
         d1 = (np.log(self.stock_price / self.strike) + (self.risk_free() + (
-                    np.power(sigma, 2) / 2) * self.maturity())) / (sigma * math.sqrt(self.maturity()))
+                np.power(sigma, 2) / 2) * self.maturity())) / (sigma * math.sqrt(self.maturity()))
         n_d1 = st.norm.cdf(d1)
         d2 = d1 - sigma * math.sqrt(self.maturity())
         n_d2 = st.norm.cdf(d2)
@@ -100,7 +102,7 @@ class BlackScholesModel:
             axs.set_ylim(ymin=0.0)
             axs.set_xlabel("Strike Price", fontsize=14)  # Set X-axis label
             axs.set_ylabel("Call Price", fontsize=14)  # Set Y-axis label
-            axs.set_title(f"Expiration: {datetime.strptime(self.exp_date, '%Y-%m-%d').strftime('%b %d, %Y')}",
+            axs.set_title(f"Expiration: {datetime.datetime.strptime(self.exp_date, '%Y-%m-%d').strftime('%b %d, %Y')}",
                           fontsize=14)  # Subtitle on the first figure
             axs.spines['right'].set_visible(False)  # Remove right border on the first subplot
             axs.spines['top'].set_visible(False)  # Remove top border on the first subplot
@@ -131,8 +133,9 @@ class BlackScholesModel:
                 ax.set_ylim(ymin=0.0)
                 ax.set_xlabel("Strike Price", fontsize=14)  # Set X-axis label
                 ax.set_ylabel("Call Price", fontsize=14)  # Set Y-axis label
-                ax.set_title(f"Expiration: {datetime.strptime(self.exp_date[n], '%Y-%m-%d').strftime('%b %d, %Y')}",
-                             fontsize=14)  # Subtitle on the first figure
+                ax.set_title(
+                    f"Expiration: {datetime.datetime.strptime(self.exp_date[n], '%Y-%m-%d').strftime('%b %d, %Y')}",
+                    fontsize=14)  # Subtitle on the first figure
                 ax.spines['right'].set_visible(False)  # Remove right border on the first subplot
                 ax.spines['top'].set_visible(False)  # Remove top border on the first subplot
 
@@ -144,3 +147,35 @@ class BlackScholesModel:
         plt.show()
 
         plt.close()
+
+
+# price = 3271.12
+# strike = 1000
+# Risk_free = 0.0011
+# time_to_maturity = 1.356164383561644
+# Call_premium = 3006.29
+#
+# bsm = BlackScholesModel(datetime.datetime.strptime('2020-12-16', "%Y-%m-%d"),
+#                         datetime.datetime.strptime('2020-08-12', "%Y-%m-%d"), price,
+#                         strike, premium=Call_premium)
+#
+#
+# def minimum(f):
+#     return sc.optimize.minimize(f)
+#
+#
+# x0 = 1
+# print(timeit.timeit('''def minimum(bsm):
+#                         return sc.optimize.minimize(bsm)
+#                     ''', number=1))
+#
+# print(timeit.timeit('''def difference(self, sigma):
+#                         d1 = (np.log(self.stock_price / self.strike) + (self.risk_free()
+#                             + (np.power(sigma, 2) / 2) * self.maturity())) / (sigma * math.sqrt(self.maturity()))
+#                         n_d1 = st.norm.cdf(d1)
+#                         d2 = d1 - sigma * math.sqrt(self.maturity())
+#                         n_d2 = st.norm.cdf(d2)
+#                         c = self.stock_price * n_d1 - self.strike * math.exp(-self.risk_free() * self.maturity()) * n_d2
+#                         call_premium = self.premium
+#                         return (call_premium - c) ** 2
+#                     ''',number=1))
