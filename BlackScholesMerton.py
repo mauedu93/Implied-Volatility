@@ -148,7 +148,22 @@ class BlackScholesModel:
 
         plt.close()
 
-
+        
+def risk_free(maturity):
+    num_days = [30, 60, 90, 180, 365, 730, 1095, 1825, 2555, 3650, 7300, 10950]
+    yield_curve = quandl.get("USTREASURY/YIELD", authtoken='JMxryiBcRV26o9r5q7uv')
+    rf_ttm = list(yield_curve.columns)
+    risk_free = []
+    if round(maturity * 365) < 0:
+        return "Expire date must be greater than today"
+    elif round(maturity * 365) > num_days[-1]:
+        return yield_curve[rf_ttm[-1]][-1] / 100
+    else:
+        for b, f in zip(num_days, rf_ttm):
+            if round(maturity() * 365) < b:
+                risk_free.append(yield_curve[f][-1] / 100)
+        return risk_free[0]
+        
 # price = 3271.12
 # strike = 1000
 # Risk_free = 0.0011
