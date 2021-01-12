@@ -1,4 +1,4 @@
-<header> Implied Volatility </header>
+<h1> Implied Volatility </h1>
 
 The implied volatility is a measure of market risk and helps determine changes in the supply and demand of securities; however, the implied volatility does not provide the direction of the change. The implied volatility can be calculated from option prices using the Black-Scholes formula. This metric gives a forward-looking perspective to the analyst. When the market is bearish, the volatility tends to increase; on the other hand, when investors expect prices to rise, the implied volatility tends to fall.
 
